@@ -1,0 +1,260 @@
+<!-- partials/shell.html -->
+<script src="../js/auth-guard.js"></script>
+
+<div id="appShell" class="d-flex">
+
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-header px-3 d-flex align-items-center" style="height:56px">
+      <a id="sidebarBrand" href="#" class="navbar-brand text-white fw-bold m-0">Fisys</a>
+    </div>
+    <ul id="sidebarMenu">
+      <li><a href="#Dashboard"><i class="bi bi-house"></i><span>Inicio</span></a></li>
+      
+      <li data-role="Fisio,SuperAdmin"><a href="#" class="has-sub"><i class="bi bi-clipboard2-pulse-fill"></i><span>Mi consulta</span></a>
+        <ul class="sub-menu">
+          <li data-role="Fisio,SuperAdmin"><a href="#">Acceder</a></li>
+          <li data-role="Fisio,SuperAdmin"><a href="#">Calendario</a></li>
+        </ul>
+      </li>
+
+      <li data-role="SuperAdmin,Responsable,Administracion"><a href="#" class="has-sub"><i class="bi bi-journal"></i><span>Clientes</span></a>
+        <ul class="sub-menu">
+          <li data-role="SuperAdmin,Responsable,Administracion"><a href="#">Gestión</a></li>
+          <li data-role="SuperAdmin,Responsable,Administracion"><a href="#">Reportes</a></li>
+        </ul>
+      </li>
+
+      <li data-role="SuperAdmin,Responsable"><a href="#" class="has-sub"><i class="bi bi-person-fill"></i><span>Trabajadores</span></a>
+        <ul class="sub-menu">
+          <li data-role="SuperAdmin,Responsable"><a href="#Trabajadores/Gestion">Gestión</a></li>
+          <li data-role="SuperAdmin,Responsable"><a href="#">Reportes</a></li>
+        </ul>
+      </li>
+
+      <li data-role="SuperAdmin,Responsable"><a href="#" class="has-sub"><i class="bi bi-hospital"></i><span>Clinicas</span></a>
+        <ul class="sub-menu">
+          <li data-role="SuperAdmin,Responsable"><a href="#">Gestión</a></li>
+          <li data-role="SuperAdmin,Responsable"><a href="#">Reportes</a></li>
+        </ul>
+      </li>
+
+      <li><a href="#"><i class="bi bi-gear"></i><span>Administración</span></a></li>
+    </ul>
+  </aside>
+
+
+  <div id="mainColumn" class="flex-grow-1 d-flex flex-column">
+
+    <nav class="navbar topbar px-3 align-items-center">
+    
+      <!-- === zona derecha === -->
+      <div class="ms-auto d-flex align-items-center gap-3 flex-nowrap">
+    
+        <!-- desplegable -->
+        <select id="contextSelectClincas" class="form-select form-select-sm" style="min-width:160px">
+          <option selected hidden>Seleccionar…</option>
+        </select>
+    
+        <!-- icono + nombre -->
+        <i class="bi bi-person-circle text-white fs-5"></i>
+        <span id="userName" class="text-white fw-semibold">Usuario</span>
+    
+        <!-- logout -->
+        <button id="logoutBtn" class="btn btn-outline-light btn-sm">
+          <i class="bi bi-box-arrow-right"></i>
+        </button>
+    
+      </div>
+    </nav>
+    
+    
+
+    <!-- Aquí inyectará cada pantalla su propio contenido -->
+    <main id="pageContent" class="flex-grow-1 p-4"></main>
+  </div>
+</div>
+
+
+<!-- AL FINAL DE shell.html -->
+<script> 
+/*Inicio barra menú lateral izquierda*/
+  (() => {
+    const shell  = document.getElementById('appShell');
+    if (!shell) return;
+  
+    // 1) Fisys → alternar estado (colapsar / expandir)
+    document.getElementById('sidebarBrand')
+            .addEventListener('click', e => {
+              e.preventDefault();           // evita navegación al '#'
+              shell.classList.toggle('toggled');
+            });
+  
+    // 2) Cualquier enlace de menú → expandir
+    document.querySelectorAll('#sidebar ul li a')
+            .forEach(a => a.addEventListener('click',
+              () => shell.classList.remove('toggled')));
+  })();
+
+  const shell   = document.getElementById('appShell');
+const parents = document.querySelectorAll('#sidebar a.has-sub');
+
+parents.forEach(link => {
+
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const li = link.parentElement;
+
+    /* ① Si el sidebar está comprimido, primero lo expandimos */
+    if (shell.classList.contains('toggled')) {
+      shell.classList.remove('toggled');
+      /* espera a que termine la animación antes de abrir el sub-menú */
+      setTimeout(() => li.classList.add('open'), 250);    // 250 ms ≈ transition
+      return;
+    }
+
+    /* ② Si ya está expandido, sólo alternamos el sub-menú */
+    li.classList.toggle('open');
+
+    /* (Optativo) cerrar los demás para que sólo uno quede abierto */
+    li.parentElement.querySelectorAll('li.open').forEach(other => {
+      if (other !== li) other.classList.remove('open');
+    });
+  });
+
+});
+
+/*Fin barra menú lateral izquierda*/
+
+
+/*Inicio nombre usuario*/
+(() => {
+
+/* ——— Obtén el nombre del usuario ——— */
+function userName () {
+  const c = window.userClaims || {};
+  return (
+    c.name        ||   // estándar oidc
+    c.given_name  ||   // …
+    c.unique_name ||   // .NET
+    c.sub         ||   // fallback
+    'Usuario'
+  );
+}
+
+/* ——— Pinta el nombre ——— */
+const span = document.getElementById('userName');
+if (span) span.textContent = userName();
+
+})();
+
+/*Fin nombre usuario*/
+
+
+/*Inicio botón logout*/
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    const token = localStorage.getItem('token');
+    $.ajax({
+      url: API_BASE_URL + 'auth/revoke',
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token }   // suficiente
+      // sin contentType, sin data
+    }).always(() => {                 // se ejecute o falle
+      localStorage.removeItem('token');
+      window.location.href = '../login.html';
+    });
+  });
+/*Fin botón Logout*/
+
+
+  
+/*Inicio desplegable clinicas*/
+  (() => {
+
+/* ---------- helpers ---------- */
+const select   = document.getElementById('contextSelectClincas');
+const claims   = window.userClaims || {};             // viene de auth‑guard
+const tokenKey = 'token';
+  /* ----------- 1 · RELLENAR DESPLEGABLE ----------- */
+  function loadClinics () {
+/*  identificador del trabajador que tu backend espera */
+const trabajadorId =
+      claims.nameid          // ClaimTypes.NameIdentifier en .NET
+   || claims.sub             // fallback si lo llaman "sub"
+   || claims.userId;         // o el nombre que uses
+
+ const currentClinicId = +(
+      claims.clinica       //  caso estándar
+   || claims.clinicaId      //  si se llama así
+   || claims.clinica_id     //  snake case
+   || 0                     // fallback
+);
+
+
+$.ajax({
+  url: `${API_BASE_URL}Trabajador/GetAllClinicasByTrabajador`,
+  method: 'GET',
+  data: { id: trabajadorId },                     // query ?id=
+  headers: { Authorization: 'Bearer ' + localStorage.getItem(tokenKey) }
+})
+.done(clinics => {
+  /* limpia y rellena */
+  select.innerHTML = '<option hidden>Seleccionar…</option>';
+
+  clinics.forEach(c => {
+  const opt = document.createElement('option');
+  opt.value = c.id;
+  opt.textContent = c.nombre;
+  if (+c.id === currentClinicId) opt.selected = true;   // ← aquí
+  select.appendChild(opt);
+});
+})
+.fail(() => alert('No se pudieron cargar las clínicas'));
+}
+
+/* ----------- 2 · CAMBIO DE CLÍNICA ----------- */
+function switchClinic (clinicId) {
+  const token = localStorage.getItem('token');
+
+  fetch(API_BASE_URL + 'Auth/CambioClinica', {
+  method : 'POST',
+  headers : {
+    'Authorization': 'Bearer ' + token,
+    'Content-Type' : 'application/json'
+  },
+  body: JSON.stringify({ clinicaId: clinicId })   // ← { "clinicaId": 5 }
+})
+.then(r => r.ok ? r.json() : r.text().then(t => {throw new Error(t)}))
+.then(({ accessToken }) => handleNewToken(accessToken))
+.catch(err => console.error('Cambio clínica ↯', err));
+}
+
+/* ---- inicialización y listener ---- */
+loadClinics();
+
+select.addEventListener('change', e => {
+const newId = +e.target.value;
+if (newId && newId !== +claims.clinicId) switchClinic(newId);
+});
+
+})();
+
+function handleNewToken(newToken){
+  localStorage.setItem('token', newToken);
+  if (window.$) $.ajaxSetup({ headers:{ Authorization:'Bearer '+newToken } });
+  window.userClaims = parseJwt(newToken);         // tu helper de decode
+  location.reload();                              // o actualiza UI a mano
+}
+
+function parseJwt(token) {
+      const base64Url = token.split('.')[1];
+      if (!base64Url) throw Error('Sin payload');
+  
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64.padEnd(base64.length + (4 - base64.length % 4) % 4, '=');
+      return JSON.parse(atob(padded));
+    }
+  /*Fin desplegable clinicas*/
+
+
+  </script>

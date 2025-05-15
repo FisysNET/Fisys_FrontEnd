@@ -1,0 +1,22 @@
+/* dashboard.css */
+
+#wrapper {
+    min-height: 100vh;
+    display: flex;
+  }
+  
+  #sidebar {
+    width: 250px;
+    transition: all 0.3s;
+  }
+  
+  #wrapper.toggled #sidebar {
+    width: 70px;
+  }
+  
+  #wrapper.toggled #sidebar .sidebar-header,
+  #wrapper.toggled #sidebar a {
+    font-size: 0;
+    overflow: hidden;
+  }
+  
