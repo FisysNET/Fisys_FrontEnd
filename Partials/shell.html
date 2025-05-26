@@ -226,7 +226,7 @@ function switchClinic (clinicId) {
 })
 .then(r => r.ok ? r.json() : r.text().then(t => {throw new Error(t)}))
 .then(({ accessToken }) => handleNewToken(accessToken))
-.catch(err => console.error('Cambio clínica ↯', err));
+.catch(err => console.error('Cambio clínica ', err));
 }
 
 /* ---- inicialización y listener ---- */

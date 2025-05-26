@@ -1,0 +1,22 @@
+/*Inicio selector mútiple con desplegable*/
+.select-tags .list-group-item {
+  cursor: pointer;
+}
+.select-tags .list-group-item.active {
+  background-color: #0d6efd;
+  color: white;
+}
+.tag-item {
+  background-color: #0d6efd;
+  color: white;
+  border-radius: 999px;
+  padding: 0.25rem 0.5rem;
+  display: flex;
+  align-items: center;
+}
+.tag-item .remove-tag {
+  margin-left: 0.25rem;
+  font-weight: bold;
+  cursor: pointer;
+}
+/*Fin selector mútiple con desplegable*/
