@@ -1,0 +1,28 @@
+<script type="module" src="./../../componentes/componentes.js"></script>
+<html>
+  <body>
+      <barra-superior></barra-superior>
+  <div class="d-flex">
+        <menu-lateral></menu-lateral>
+    <main class="flex-grow-1 p-3">
+
+       <!--Aqui todo el contenido de la página--> 
+       
+
+       <!--Ejemplo de llamada componente parametrizado--> 
+       <combo-box
+        id="usuarios"
+        endpoint="https://jsonplaceholder.typicode.com/users"
+        value-field="id"
+        text-field="name"
+        placeholder="Selecciona un usuario">
+      </combo-box>
+      <!--Fin ejemplo de llamada componente parametrizado--> 
+
+    </main>
+  </div>
+  </body>
+
+
+   
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+  <script type="module" src="./componentes/componentes.js"></script>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FisysAPP</title>
+</head>
+<body>
+    <barra-superior></barra-superior>
+    <div class="d-flex">
+    <menu-lateral ></menu-lateral>
+
+        <main class="flex-grow-1 p-3">
+            <!--Escribir aquí todo el contenido de la página-->
+            <p>
+                Bienvenida a la FisysAPP
+            </p>
+        </main>
+    </div>
+</body>
+
+</html>
+<!-- pon este script justo antes de cerrar </body> -->
+<script type="module">
+  // Import estático — no debería fallar si la ruta es correcta
+  import { NavegarA } from './Enrutador.js';
+
+  // Función para guardar la ruta actual en sessionStorage
+  const guardarRuta = () => {
+    // Usamos hash (incluyendo el '#') o asumimos '/EntradaApp'
+    const ruta = window.location.hash || '#/EntradaApp';
+    sessionStorage.setItem('rutaAnterior', ruta);
+  };
+
+  // Cada vez que cambie el hash guardamos la nueva ruta
+  window.addEventListener('hashchange', guardarRuta);
+
+  // También justo antes de salir (por si no hay hashchange)
+  window.addEventListener('beforeunload', guardarRuta);
+
+  // Al cargar el DOM, restauramos la ruta si existe
+  window.addEventListener('DOMContentLoaded', () => {
+    const rutaGuardada = sessionStorage.getItem('rutaAnterior');
+    if (rutaGuardada) {
+      // Limpiamos para no acumular
+      sessionStorage.removeItem('rutaAnterior');
+      // Quitamos el '#' inicial para pasar sólo la ruta a NavegarA()
+      const rutaLimpia = rutaGuardada.startsWith('#')
+        ? rutaGuardada.substring(1)
+        : rutaGuardada;
+      NavegarA(rutaLimpia);
+    }
+  });
+</script>
+
+
